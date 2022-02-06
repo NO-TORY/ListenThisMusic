@@ -59,7 +59,20 @@ def play_music():
             pass
 
         music_end = True
-        root.destroy()
+        messagebox.showinfo(":)", "노래를 끝까지 들으셨군요!")
+        messagebox.showinfo(":)", "노래의 저작권은 Snail's House (ujico)님에게 있습니다!")
+
+        try:
+            winreg.DeleteKeyEx(
+                key,
+                key_value,
+                winreg.KEY_ALL_ACCESS,
+                0
+            )
+        except:
+            pass
+
+        os._exit(0)
 
     threading.Thread(target=_play_music).start()
 
@@ -90,22 +103,10 @@ def on_exit():
         messagebox.showwarning("...", "컴퓨터를 재부팅 할 겁니다.")
         messagebox.showwarning("...", "그리고 다시 돌아와서 한번 더 노래를 듣게 할 겁니다.")
         messagebox.showinfo(":(", "그럼 안녕")
-        winreg.SetValueEx(open_key, "ListenThisMusic", 0, winreg.REG_SZ, this_adress)
+        winreg.SetValueEx(open_key, "ListenThisMusic", 0, winreg.REG_SZ, this_adress.replace(".pyw", ".exe"))
         winreg.CloseKey(open_key)
         os.system("shutdown /r")
         os._exit(1)
-    else:
-        messagebox.showinfo(":)", "노래를 끝까지 들으셨군요!")
-        messagebox.showinfo(":)", "노래의 저작권은 Snail's House (ujico)님에게 있습니다!")
-
-        winreg.DeleteKeyEx(
-            key,
-            key_value,
-            winreg.KEY_ALL_ACCESS,
-            0
-        )
-
-        os._exit(0)
 
 open_spotify = lambda: webbrowser.open("https://open.spotify.com/track/4mCwspCTPF1aoWUNxsS5aD?si=c5d987f3f38a42bf")
 
